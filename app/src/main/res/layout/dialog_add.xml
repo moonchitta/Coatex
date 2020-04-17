@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/add_alias"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Alias"
+        android:imeOptions="flagNoExtractUi"
+        android:inputType="textPersonName|textCapWords|textCapSentences"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/add_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ID"
+        android:imeOptions="flagNoExtractUi"
+        android:inputType="textPersonName"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/add_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Explain about yourself..."
+        android:maxLines="6"
+        android:gravity="top|left"
+        android:imeOptions="flagNoExtractUi"
+        android:inputType="textMultiLine" />
+
+</LinearLayout>

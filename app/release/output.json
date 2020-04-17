@@ -1,0 +1,20 @@
+[
+  {
+    "outputType": {
+      "type": "APK"
+    },
+    "apkData": {
+      "type": "MAIN",
+      "splits": [],
+      "versionCode": 22,
+      "versionName": "1.17",
+      "enabled": true,
+      "outputFile": "Coatex_release_1.17_22.apk",
+      "fullName": "release",
+      "baseName": "release",
+      "dirName": ""
+    },
+    "path": "Coatex_release_1.17_22.apk",
+    "properties": {}
+  }
+]
