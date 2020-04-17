@@ -10,8 +10,8 @@ android {
         applicationId "com.ivor.coatex"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 22
-        versionName "1.17"
+        versionCode 23
+        versionName "1.2"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
     }
