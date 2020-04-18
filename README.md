@@ -29,6 +29,7 @@ This application creates hidden service using hostname as ID of the application.
 * Swipe to tag message
 * Message tag
 * Media message tag
+* Encrypted ID backup and restore
 
 ## Getting Started
 
