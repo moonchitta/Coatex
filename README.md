@@ -4,12 +4,12 @@ This is TOR based peer to peer, encrypted chatting application. The aim of this 
 
 ## Screenshots
 
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189547.png)
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189578.png)
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189586.png)
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189593.png)
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189645.png)
-![](https://github.com/moonchitta/Coatex/blob/master/Screenshots/Screenshot_1587189688.png)
+![](Screenshots/Screenshot_1587189547.png)
+![](Screenshots/Screenshot_1587189578.png)
+![](Screenshots/Screenshot_1587189586.png)
+![](Screenshots/Screenshot_1587189593.png)
+![](Screenshots/Screenshot_1587189645.png)
+![](Screenshots/Screenshot_1587189688.png)
 
 ## Technical Details
 
