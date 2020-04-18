@@ -1,6 +1,6 @@
 **Privacy Policy**
 
-Moonchitta built the Coatex app as an Open Source app. This SERVICE is provided by Moonchitta at no cost and is intended for use as is.
+Moonchitta built the Coatex application as an Open Source app. This SERVICE is provided by Moonchitta at no cost and is intended for use as is.
 
 If you choose to use my Service, feel free to use it as I am not collecting a single information from you if you install Coatex on your phone.
 
