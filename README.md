@@ -4,12 +4,12 @@ This is TOR based peer to peer, encrypted chatting application. The aim of this 
 
 ## Screenshots
 
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189547.png)
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189578.png)
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189586.png)
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189593.png)
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189645.png)
-![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189688.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189547.png) <!-- .element height="50%" width="50%" -->
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189578.png) <!-- .element height="50%" width="50%" -->
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189586.png) <!-- .element height="50%" width="50%" -->
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189593.png) <!-- .element height="50%" width="50%" -->
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189645.png) <!-- .element height="50%" width="50%" -->
+![](https://raw.githubusercontent.com/moonchitta/Coatex/master/Screenshots/Screenshot_1587189688.png) <!-- .element height="50%" width="50%" -->
 
 ## Technical Details
 
