@@ -14,13 +14,29 @@
         android:layout_alignParentTop="true"
         android:text="Requests" />
 
-    <FrameLayout
+
+    <RelativeLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/torStatusView"
-        android:layout_below="@id/btnRequests"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:layout_below="@id/btnRequests">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rcvwContacts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false" />
+
+        <TextView
+            android:id="@+id/txtNoContacts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:padding="32dp"
+            android:text="@string/no_contacts"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

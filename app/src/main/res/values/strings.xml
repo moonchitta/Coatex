@@ -128,4 +128,13 @@
     <string name="starting_">Starting...</string>
     <string name="registering_coatex_id_">Registering Coatex ID...</string>
     <string name="starting_tor_">Starting tor...</string>
+    <string name="title_activity_request">Requests</string>
+    <string name="enter_password_exported_id">Please enter password for the export ID</string>
+    <string name="enter_confirm_password">Enter confirm password</string>
+    <string name="enter_password">Enter password</string>
+    <string name="password_for_export_backup">ID Password</string>
+    <string name="password_qualify">Password must have 1 numeric, 1 upper letter and 1 special character (@ # $ % ! .)</string>
+    <string name="alias">Alias</string>
+    <string name="id">ID</string>
+    <string name="tell_about_yourself">Tell about yourself</string>
 </resources>

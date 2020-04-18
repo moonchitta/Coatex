@@ -3,7 +3,10 @@ package com.ivor.coatex.crypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -11,6 +14,7 @@ import java.security.SecureRandom;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -83,10 +87,10 @@ public class AdvancedCrypto {
     /**
      * {@link java.security.spec.X509EncodedKeySpec} encoded key bytes
      *
-     * @param key
+     * @param encodedKey
      */
-    public AdvancedCrypto(byte[] key) {
-        this.secret = convertKey(key);
+    public AdvancedCrypto(byte[] encodedKey) {
+        this.secret = convertKey(encodedKey);
     }
 
     /**
@@ -146,12 +150,11 @@ public class AdvancedCrypto {
     /**
      * Encrypts the inputFile and saves to ouputFile location
      *
-     * @param key        SecretKey to use
      * @param inputFile  Path of the file to be encrypted
      * @param outputFile Path of the file where encrypted file will be write to
      * @throws Exception
      */
-    public void encryptFile(SecretKey key, String inputFile, String outputFile)
+    public void encryptFile(String inputFile, String outputFile)
             throws Exception {
 
         byte[] iv = generateIv();
@@ -186,13 +189,12 @@ public class AdvancedCrypto {
     /**
      * encrypts file, with specified headers
      *
-     * @param key        SecretKey to be used
      * @param headers    bytes which are being written before actual file
      * @param inputFile  the path of input file
      * @param outputFile the path of file where to save
      * @throws Exception
      */
-    public void encryptFile(SecretKey key, byte[] headers, String inputFile, String outputFile)
+    public void encryptFile(byte[] headers, String inputFile, String outputFile)
             throws Exception {
 
         byte[] iv = generateIv();
@@ -235,12 +237,11 @@ public class AdvancedCrypto {
     /**
      * Decrypts the inputFile to outputFile location
      *
-     * @param key        SecretKey to be used
      * @param inputFile  encrypted file path
      * @param outputFile file that will be written to
      * @throws Exception
      */
-    public void decryptFile(SecretKey key, String inputFile, String outputFile)
+    public void decryptFile(String inputFile, String outputFile)
             throws Exception {
 
         FileInputStream fis = new FileInputStream(inputFile);
@@ -275,13 +276,12 @@ public class AdvancedCrypto {
     /**
      * Decrypts the file, skipping initial skipBytes.
      *
-     * @param key        SecretKey to be used
      * @param skipBytes  number of bytes to skip
      * @param inputFile  encrypted file path
      * @param outputFile file that will be written to
      * @throws Exception
      */
-    public void decryptFile(SecretKey key, int skipBytes, String inputFile, String outputFile)
+    public void decryptFile(int skipBytes, String inputFile, String outputFile)
             throws Exception {
 
         FileInputStream fis = new FileInputStream(inputFile);
@@ -291,16 +291,11 @@ public class AdvancedCrypto {
         byte[] ivHexBytes = new byte[IV_LENGTH * 2];
         fis.read(ivHexBytes, 0, ivHexBytes.length);
 
-        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
-        String ivHex = new String(ivHexBytes);
-        IvParameterSpec ivspec = new IvParameterSpec(toByte(ivHex));
-        cipher.init(Cipher.DECRYPT_MODE, secret, ivspec);
-
         File file = new File(outputFile);
 
         FileOutputStream fos = new FileOutputStream(file);
 
-        CipherInputStream cis = new CipherInputStream(fis, cipher);
+        CipherInputStream cis = getCipherInputStream(ivHexBytes, fis);
 
         int read = -1;
         byte[] buffer = new byte[2048];
@@ -312,6 +307,14 @@ public class AdvancedCrypto {
         cis.close();
         fis.close();
         fos.close();
+    }
+
+    public CipherInputStream getCipherInputStream(byte[] iv, InputStream is) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        String ivHex = new String(iv);
+        IvParameterSpec ivSpec = new IvParameterSpec(toByte(ivHex));
+        cipher.init(Cipher.DECRYPT_MODE, secret, ivSpec);
+        return new CipherInputStream(is, cipher);
     }
 
     /**

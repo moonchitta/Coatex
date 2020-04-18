@@ -45,6 +45,13 @@ import io.realm.Realm;
 
 public class Server {
 
+    public static final int CODE_UNKNOWN = 0;
+    public static final int CODE_DATA_RECEIVED = 1;
+    public static final int CODE_CONTACT_NOT_FOUND = 2;
+    public static final int CODE_WRONG_ADDRESS = 3;
+    public static final int CODE_INVALID_SIGNATURE = 4;
+    public static final int CODE_WRONG_TIMESTAMP = 5;
+
     private static Server instance;
     private String socketName;
     private Context mContext;
@@ -169,6 +176,7 @@ public class Server {
                     }
                 }
                 log("Hidden service registered");
+                setServiceRegistered(true);
                 if (mServiceRegisterListener != null) mServiceRegisterListener.onChange(true);
                 client.askForNewMessages();
 
@@ -179,7 +187,6 @@ public class Server {
                     e.printStackTrace();
                 }
                 setCheckServiceRegisteredRunning(false);
-                setServiceRegistered(true);
             }
         };
         mServiceRegistration.start();
@@ -244,7 +251,7 @@ public class Server {
 
             if (!td.getReceiver().equals(tor.getID())) {
                 log("message wrong address");
-                return "";
+                return "" + CODE_WRONG_ADDRESS;
             }
 
             String sender = td.getSender();
@@ -257,7 +264,7 @@ public class Server {
                     Util.base64decode(signature),
                     (op + " " + sender + " " + td.getData()).getBytes(StandardCharsets.UTF_8))) {
                 log("add invalid signature");
-                return "";
+                return "" + CODE_INVALID_SIGNATURE;
             }
             log("add signature ok");
             if (td.getDataType() == TorData.TYPE_REQUEST) {
@@ -284,14 +291,14 @@ public class Server {
             Contact contact = realm.where(Contact.class).equalTo("address", sender).findFirst();
             if (contact == null) {
                 log("Contact not found with " + sender);
-                return "2";
+                return "" + CODE_CONTACT_NOT_FOUND;
             }
             byte[] pubKey = contact.getPubKey();
             String signature = td.getSignature();
 
             if (!td.getReceiver().equals(tor.getID())) {
                 log("message wrong address");
-                return "";
+                return "" + CODE_WRONG_ADDRESS;
             }
 
             log("message address ok");
@@ -301,7 +308,7 @@ public class Server {
                     Util.base64decode(signature),
                     ("msg " + td.getData()).getBytes(StandardCharsets.UTF_8))) {
                 log("message invalid signature");
-                return "1";
+                return "" + CODE_INVALID_SIGNATURE;
             }
             log("message signature ok");
 
@@ -322,7 +329,7 @@ public class Server {
             }
             notifier.onMessage();
             log("add ok");
-            return "1";
+            return "" + CODE_DATA_RECEIVED;
         }
         if ("newmsg".equals(tokens[0]) && tokens.length == 6) {
             String op = tokens[0];
@@ -333,16 +340,16 @@ public class Server {
             String signature = tokens[5];
             if (!receiver.equals(tor.getID())) {
                 log("message wrong address");
-                return "";
+                return "" + CODE_WRONG_ADDRESS;
             }
             log("message address ok");
             if (Long.parseLong(timestr) > System.currentTimeMillis()) {
                 log("wrong timestamp, future");
-                return "";
+                return "" + CODE_WRONG_TIMESTAMP;
             }
             if (Long.parseLong(timestr) + 150000 < System.currentTimeMillis()) {
                 log("wrong timestamp, timed out");
-                return "";
+                return "" + CODE_WRONG_TIMESTAMP;
             }
             if (!tor.checkSig(
                     sender,
@@ -350,12 +357,12 @@ public class Server {
                     Util.base64decode(signature),
                     (op + " " + receiver + " " + sender + " " + timestr).getBytes(StandardCharsets.UTF_8))) {
                 log("message invalid signature");
-                return "";
+                return "" + CODE_INVALID_SIGNATURE;
             }
             Client.getInstance(mContext).startSendPendingMessages(sender);
-            return "1";
+            return "" + CODE_DATA_RECEIVED;
         }
-        return "";
+        return "" + CODE_UNKNOWN;
     }
 
     public void downloadFile(Message message) {

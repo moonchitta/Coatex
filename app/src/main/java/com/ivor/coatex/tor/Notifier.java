@@ -27,10 +27,9 @@ import androidx.core.app.TaskStackBuilder;
 
 import com.ivor.coatex.MainActivity;
 import com.ivor.coatex.R;
+import com.ivor.coatex.RequestActivity;
 import com.ivor.coatex.db.Database;
 import com.ivor.coatex.utils.Settings;
-
-//import android.support.v4.app.NotificationCompat;
 
 public class Notifier {
 
@@ -65,7 +64,6 @@ public class Notifier {
         } else {
             if (Settings.getPrefs(context).getBoolean("sound", true)) {
                 try {
-//                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                     Uri uri = Uri.parse("file:///android_asset/tones/tone.ogg");
                     Ringtone r = RingtoneManager.getRingtone(context, uri);
                     r.play();
@@ -118,6 +116,12 @@ public class Notifier {
         log("Notification tone : " + notificationTone);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+//            NotificationChannel existingChannel = notificationManager.getNotificationChannel(channelId);
+//            if (existingChannel != null) {
+//                notificationManager.deleteNotificationChannel(channelId);
+//            }
+
             NotificationChannel mChannel = new NotificationChannel(
                     channelId, channelName, importance);
 
@@ -156,8 +160,7 @@ public class Notifier {
     }
 
     public void showRequestNotification(String sender, String description) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(MainActivity.EXTRA_SHOW_PAGE, MainActivity.EXTRA_SHOW_PAGE_REQUEST);
+        Intent intent = new Intent(context, RequestActivity.class);
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -179,7 +182,6 @@ public class Notifier {
                 .setContentTitle(sender)
                 .setContentText(description);
 
-
         if (Settings.getPrefs(context).getBoolean("sound", true)) {
             mBuilder.setDefaults(NotificationCompat.DEFAULT_SOUND);
             mBuilder.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
@@ -195,5 +197,4 @@ public class Notifier {
 
         notificationManager.notify(notificationId, mBuilder.build());
     }
-
 }

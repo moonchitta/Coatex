@@ -24,8 +24,12 @@
         android:theme="@style/AppTheme"
         tools:replace="android:appComponentFactory">
         <activity
+            android:name=".RequestActivity"
+            android:label="@string/title_activity_request"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
             android:name=".AboutActivity"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"></activity>
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
         <activity
             android:name=".VideoViewActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />

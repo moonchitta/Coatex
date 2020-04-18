@@ -1,6 +1,5 @@
 package com.ivor.coatex.ui;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.ivor.coatex.MainActivity;
 import com.ivor.coatex.R;
 import com.ivor.coatex.adapters.RequestsAdapter;
 import com.ivor.coatex.db.Contact;
@@ -40,16 +38,10 @@ public class RequestsFragment extends Fragment {
         mRequestsAdapter = new RequestsAdapter(mContacts, getContext());
         mRVRequests.setAdapter(mRequestsAdapter);
         mRVRequests.setHasFixedSize(true);
-        mRVRequests.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        mRVRequests.addItemDecoration(new DividerItemDecoration(mainView.getContext(), DividerItemDecoration.VERTICAL));
         updateNoDataView();
+
         return mainView;
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-
-        ((MainActivity) getActivity()).getSupportActionBar().setTitle("Requests");
     }
 
     @Override

@@ -232,9 +232,13 @@ public class Client {
             log("try to send friend request: " + c.getAddress());
             String reply = sendAdd(c.getAddress(), c.getDescription());
             if (!reply.isEmpty()) {
-                c.setPubKey(Util.base64decode(reply));
-                c.setOutgoing(0);
-                c.setIncoming(0);
+                if (reply.length() > 2) {
+                    c.setPubKey(Util.base64decode(reply));
+                    c.setOutgoing(0);
+                    c.setIncoming(0);
+                } else {
+
+                }
                 log("friend request sent");
             }
         }

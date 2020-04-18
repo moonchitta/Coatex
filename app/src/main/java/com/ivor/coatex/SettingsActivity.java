@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -36,12 +37,15 @@ import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
+import com.ivor.coatex.crypto.AdvancedCrypto;
 import com.ivor.coatex.db.Contact;
 import com.ivor.coatex.db.Database;
 import com.ivor.coatex.db.Message;
 import com.ivor.coatex.tor.Tor;
+import com.ivor.coatex.utils.PasswordValidator;
 import com.ivor.coatex.utils.Settings;
 import com.ivor.coatex.utils.Util;
 import com.ivor.coatex.utils.ZipManager;
@@ -195,19 +199,16 @@ public class SettingsActivity extends AppCompatActivity {
             findPreference("export_id").setOnPreferenceClickListener(preference -> {
                 if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
-                    // Permission is not granted
-
                     ActivityCompat.requestPermissions(getActivity(),
                             new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                             PR_WRITE_EXTERNAL_STORAGE);
                     return true;
                 }
-                new CreateZip(getActivity()).execute();
+                showPasswordDialog();
                 return true;
             });
 
             findPreference("about").setOnPreferenceClickListener(preference -> {
-//                showAbout();
                 startActivity(new Intent(getActivity(), AboutActivity.class));
                 return false;
             });
@@ -222,7 +223,7 @@ public class SettingsActivity extends AppCompatActivity {
                     // If request is cancelled, the result arrays are empty.
                     if (grantResults.length > 0
                             && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        new CreateZip(getActivity()).execute();
+                        showPasswordDialog();
                     } else {
                         Toast.makeText(getActivity(), "External storage access denied", Toast.LENGTH_SHORT).show();
                     }
@@ -230,15 +231,62 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         }
+
+        private void showPasswordDialog() {
+            final View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_two_password, null);
+            final TextInputEditText txtPassword = view.findViewById(R.id.txtPassword);
+            final TextInputEditText txtConfPassword = view.findViewById(R.id.txtConfPassword);
+
+            AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.password_for_export_backup)
+                    .setView(view)
+                    .setPositiveButton(R.string.ok, (dialog, which) -> {
+
+                    })
+                    .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                    }).create();
+
+            alertDialog.setOnShowListener(dialogInterface -> {
+
+                Button button = alertDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(view1 -> {
+
+                    String password = txtPassword.getText().toString().trim();
+                    String confPassword = txtConfPassword.getText().toString().trim();
+                    if (password.length() < 8) {
+                        txtPassword.setError("Password is less than 8 characters");
+                        return;
+                    }
+                    if (!password.equals(confPassword)) {
+                        txtConfPassword.setError("Password does not match");
+                        return;
+                    }
+
+                    PasswordValidator pv = PasswordValidator.getInstance();
+                    if (!pv.validate(password)) {
+                        txtPassword.setError("Password must have 1 numeric, 1 upper letter and 1 special character");
+                        return;
+                    }
+
+                    new CreateZip(getActivity(), password).execute();
+
+                    alertDialog.dismiss();
+                });
+            });
+
+            alertDialog.show();
+        }
     }
 
     private static class CreateZip extends AsyncTask<Void, Void, String> {
 
         private ProgressDialog progressDialog;
         private Context mContext;
+        private String mPassword;
 
-        public CreateZip(Context context) {
+        public CreateZip(Context context, String password) {
             mContext = context;
+            mPassword = password;
             progressDialog = new ProgressDialog(context);
             progressDialog.setMessage("Creating export zip");
             progressDialog.setCancelable(false);
@@ -258,7 +306,7 @@ public class SettingsActivity extends AppCompatActivity {
                 Util.EXTERNAL_FOLDER.mkdir();
             }
 
-            File dest = new File(Util.EXTERNAL_FOLDER, "coatex_backup.zip");
+            File dest = new File(mContext.getFilesDir(), "coatex_backup.zip");
             ZipManager zipManager = new ZipManager(mContext);
             zipManager.makeZip(dest.getAbsolutePath());
             String privateKey = "tor/torserv/private_key";
@@ -287,7 +335,17 @@ public class SettingsActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             zipManager.closeZip();
-            return dest.getAbsolutePath();
+
+            File destination = new File(Util.EXTERNAL_FOLDER, "coatex_backup.zip");
+
+            try {
+                AdvancedCrypto advancedCrypto = new AdvancedCrypto(mPassword);
+                advancedCrypto.encryptFile(dest.getAbsolutePath(), destination.getAbsolutePath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return destination.getAbsolutePath();
         }
 
         private File createMessageFile() throws IOException {

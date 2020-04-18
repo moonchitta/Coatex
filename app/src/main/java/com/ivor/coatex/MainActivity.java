@@ -34,7 +34,9 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -47,6 +49,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.google.zxing.qrcode.encoder.ByteMatrix;
 import com.google.zxing.qrcode.encoder.Encoder;
 import com.google.zxing.qrcode.encoder.QRCode;
+import com.ivor.coatex.adapters.ContactsAdapter;
 import com.ivor.coatex.db.Contact;
 import com.ivor.coatex.db.Database;
 import com.ivor.coatex.service.CoatexHostService;
@@ -54,25 +57,21 @@ import com.ivor.coatex.tor.Client;
 import com.ivor.coatex.tor.Notifier;
 import com.ivor.coatex.tor.Server;
 import com.ivor.coatex.tor.Tor;
-import com.ivor.coatex.ui.ContactsFragment;
-import com.ivor.coatex.ui.RequestsFragment;
 import com.ivor.coatex.utils.Settings;
 import com.ivor.coatex.utils.Util;
 import com.ivor.coatex.view.TorStatusView;
 import com.theartofdev.edmodo.cropper.CropImage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_QR = 12;
     private static final String TAG = MainActivity.class.getName();
-
-    public static final String EXTRA_SHOW_PAGE = "show_page";
-    public static final int EXTRA_SHOW_PAGE_REQUEST = 1;
 
     private Tor mTor;
 
@@ -80,13 +79,9 @@ public class MainActivity extends AppCompatActivity {
         Client.getInstance(this).startSendPendingFriends();
     }
 
-    private ArrayList<Fragment> mFragments;
-
-    private int mShowPage = 0;
-
-    private ContactsFragment mContactsFragment;
-    private RequestsFragment mRequestsFragment;
-    private FrameLayout mContent;
+    private RecyclerView mRVContacts;
+    public ContactsAdapter mContactsAdapter;
+    private RealmResults<Contact> mContacts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,39 +95,32 @@ public class MainActivity extends AppCompatActivity {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
 
-        Bundle extra = getIntent().getExtras();
-        if (extra != null && extra.containsKey(EXTRA_SHOW_PAGE)) {
-            mShowPage = extra.getInt(EXTRA_SHOW_PAGE);
-        }
-
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        mContent = findViewById(R.id.content);
 
         mTor = Tor.getInstance(this);
 
         ContextCompat.startForegroundService(this, new Intent(this, CoatexHostService.class));
 
-        mFragments = new ArrayList<>();
-        mContactsFragment = new ContactsFragment();
-        mRequestsFragment = new RequestsFragment();
-        mFragments.add(mContactsFragment);
-        mFragments.add(mRequestsFragment);
+        findViewById(R.id.btnRequests).setOnClickListener(view -> startActivity(new Intent(this, RequestActivity.class)));
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.content, mContactsFragment, "contacts").commit();
-        setRequestsUpdate();
-        findViewById(R.id.btnRequests).setOnClickListener(view -> {
-            Fragment fragmentA = getSupportFragmentManager().findFragmentByTag("requests");
-            if (fragmentA == null) {
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.content, mRequestsFragment, "requests")
-                        .addToBackStack("requests")
-                        .commit();
-            }
-        });
+        mRVContacts = findViewById(R.id.rcvwContacts);
+
+        mContacts = Realm.getDefaultInstance().where(Contact.class)
+                .equalTo("incoming", 0)
+                .findAll()
+                .sort("lastMessageTime", Sort.DESCENDING);
+
+        mRVContacts.setLayoutManager(new LinearLayoutManager(this));
+        mContactsAdapter = new ContactsAdapter(mContacts, this, false);
+        mRVContacts.setAdapter(mContactsAdapter);
+        mRVContacts.setHasFixedSize(true);
+        mRVContacts.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+
+        updateNoDataView();
+
+        mContacts.addChangeListener((contacts1, changeSet) -> updateNoDataView());
 
         Realm.getDefaultInstance().where(Contact.class)
                 .notEqualTo("incoming", 0).findAll().addChangeListener((contacts, changeSet) -> setRequestsUpdate());
@@ -173,6 +161,12 @@ public class MainActivity extends AppCompatActivity {
 
         checkBatteryOptimization();
 //        checkAutoStartOption();
+    }
+
+    private void updateNoDataView() {
+        findViewById(R.id.txtNoContacts).setVisibility(mContactsAdapter.getItemCount() > 0 ? View.INVISIBLE : View.VISIBLE);
+
+        setRequestsUpdate();
     }
 
     private void checkAutoStartOption() {
@@ -222,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK)
             return;
         if (requestCode == REQUEST_QR) {
@@ -385,6 +380,12 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mContacts.removeAllChangeListeners();
+    }
+
     void snack(String s) {
         Snackbar.make(findViewById(R.id.content), s, Snackbar.LENGTH_SHORT).show();
     }
@@ -400,18 +401,24 @@ public class MainActivity extends AppCompatActivity {
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
-                    mContactsFragment.filter(query);
+                    if (mContactsAdapter != null) {
+                        mContactsAdapter.filter(query);
+                    }
                     return false;
                 }
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
-                    mContactsFragment.filter(newText);
+                    if (mContactsAdapter != null) {
+                        mContactsAdapter.filter(newText);
+                    }
                     return false;
                 }
             });
             searchView.setOnCloseListener(() -> {
-                mContactsFragment.filter(null);
+                if (mContactsAdapter != null) {
+                    mContactsAdapter.filter(null);
+                }
                 Log.d(TAG, "onCreateOptionsMenu: Closing Search View");
                 return false;
             });
