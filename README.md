@@ -30,7 +30,6 @@ This application creates hidden service using hostname as ID of the application.
 * Message tag
 * Media message tag
 
-
 ## Getting Started
 
 This application works on Tor binary. If you want to build it yourself, you need ```Android Studio``` for compilation. You need to install one ```BKS``` keystore into ```asset\certificates``` having name ```coatex.bks```. If you want to have ```keystore``` with different name, make sure same name in ```com.ivor.coatex.tor.FileServer``` file. This keystore is necessary for running https server on Android.
