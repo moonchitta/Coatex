@@ -6,6 +6,19 @@ This is TOR based peer to peer, encrypted chatting application. The aim of this 
 
 This application creates hidden service using hostname as ID of the application. One has to keep in mind that, it does not include server for routing of messages, all messages are sent directly to other users. There is no online or typing status for the application, but it does indicate that message has been delivered to the user. Moreover, media sharing is slow as compared to other messaging application, because everything runs over Tor. Sharing large files are possible, but you have to rely on the network speed of tor nodes.
 
+## Features
+
+* Encrypted chatting
+* HTTPS based, password oriented file sharing
+* Dark Mode (can be changed from settings)
+* Add requests
+* Request notification
+* Message notification
+* Save media to external storage
+* Share media from other applications
+* Display picture
+
+
 ## Getting Started
 
 This application works on Tor binary. If you want to build it yourself, you need ```Android Studio``` for compilation. You need to install one ```BKS``` keystore into ```asset\certificates``` having name ```coatex.bks```. If you want to have ```keystore``` with different name, make sure same name in ```com.ivor.coatex.tor.FileServer``` file. This keystore is necessary for running https server on Android.
