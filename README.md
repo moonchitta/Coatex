@@ -2,6 +2,15 @@
 
 This is TOR based peer to peer, encrypted chatting application. The aim of this project is to bring chatting application on TOR, enable users to chat with each other with anonymity in mind. This application is on very initial stages yet it provides text messaging with media sharing capability.
 
+## Screenshots
+
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189547.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189578.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189586.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189593.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189645.png)
+![](https://raw.githubusercontent.com/moonchitta/Coatex/Screenshots/Screenshot_1587189688.png)
+
 ## Technical Details
 
 This application creates hidden service using hostname as ID of the application. One has to keep in mind that, it does not include server for routing of messages, all messages are sent directly to other users. There is no online or typing status for the application, but it does indicate that message has been delivered to the user. Moreover, media sharing is slow as compared to other messaging application, because everything runs over Tor. Sharing large files are possible, but you have to rely on the network speed of tor nodes.
@@ -17,6 +26,9 @@ This application creates hidden service using hostname as ID of the application.
 * Save media to external storage
 * Share media from other applications
 * Display picture
+* Swipe to tag message
+* Message tag
+* Media message tag
 
 
 ## Getting Started
