@@ -44,7 +44,7 @@ I have used many open-source libraries. These libraries can be found in app.grad
 
 ## License
 
-This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GPL v3 License - see the [LICENSE.md](https://raw.githubusercontent.com/moonchitta/Coatex/master/LICENSE) file for details
 
 ## Credits
 
