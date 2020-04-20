@@ -30,6 +30,9 @@ import com.ivor.coatex.R;
 import com.ivor.coatex.RequestActivity;
 import com.ivor.coatex.db.Database;
 import com.ivor.coatex.utils.Settings;
+import com.ivor.coatex.utils.Util;
+
+import java.io.File;
 
 public class Notifier {
 
@@ -64,7 +67,12 @@ public class Notifier {
         } else {
             if (Settings.getPrefs(context).getBoolean("sound", true)) {
                 try {
-                    Uri uri = Uri.parse("file:///android_asset/tones/tone.ogg");
+                    File toneDir = new File(context.getFilesDir(), "tones");
+                    if (!toneDir.exists()) toneDir.mkdir();
+                    File toneFile = new File(toneDir, "tone.ogg");
+                    Uri uri = Uri.fromFile(toneFile);
+                    if (!toneFile.exists())
+                        Util.copyAsset(context, "tones/tone.ogg", toneFile.getAbsolutePath());
                     Ringtone r = RingtoneManager.getRingtone(context, uri);
                     r.play();
                 } catch (Exception e) {
