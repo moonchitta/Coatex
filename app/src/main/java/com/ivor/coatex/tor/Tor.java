@@ -156,20 +156,6 @@ public class Tor {
                         if (line == null) break;
                         log(line);
                         status = line;
-                        if (line.contains("Socks listener listening on port")) {
-                            String ns = line;
-                            ns = ns.substring(ns.indexOf("Socks listener listening on port"));
-                            log(ns);
-                            ns = ns.replaceAll("[^0-9]", "");
-                            log(ns);
-//                            port = Integer.parseInt(ns);
-                            try {
-                                for (Listener l : mListeners) {
-                                    if (l != null) l.onChange();
-                                }
-                            } catch (Exception e) {
-                            }
-                        }
 
                         boolean ready2 = ready;
 
