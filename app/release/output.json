@@ -6,15 +6,15 @@
     "apkData": {
       "type": "MAIN",
       "splits": [],
-      "versionCode": 24,
-      "versionName": "1.2.1",
+      "versionCode": 27,
+      "versionName": "1.2.2",
       "enabled": true,
-      "outputFile": "Coatex_release_1.2.1_24.apk",
+      "outputFile": "Coatex_release_1.2.2_27.apk",
       "fullName": "release",
       "baseName": "release",
       "dirName": ""
     },
-    "path": "Coatex_release_1.2.1_24.apk",
+    "path": "Coatex_release_1.2.2_27.apk",
     "properties": {}
   }
 ]

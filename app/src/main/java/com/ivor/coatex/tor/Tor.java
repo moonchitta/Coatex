@@ -159,10 +159,6 @@ public class Tor {
 
                         boolean ready2 = ready;
 
-                        if (domain == null || domain.length() == 0) {
-                            domain = Util.filestr(new File(torsrv, "hostname")).trim();
-                        }
-
                         if (line.contains("100%")) {
                             ls(mTorDir);
                             domain = Util.filestr(new File(torsrv, "hostname")).trim();
@@ -177,12 +173,7 @@ public class Tor {
                             //test();
                             ready2 = true;
                         }
-
-                        if (!ready) {
-                            ready = ready2;
-                        }
                         ready = ready2;
-
                         try {
                             for (LogListener ll : mLogListeners) {
                                 if (ll != null) {

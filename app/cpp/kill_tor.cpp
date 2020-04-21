@@ -1,10 +1,6 @@
 //
 // Created by ivor on 3/11/20.
 //
-
-#include "kill_tor.h"
-
-
 #include <jni.h>
 
 #include <sys/types.h>
