@@ -51,20 +51,19 @@ public class CoatexHostService extends Service {
         mMerlin.bind();
 
         mMerlin.registerConnectable(() -> {
-            if (mServer != null) {
-                mServer.setServiceRegistered(false);
-                mServer.checkServiceRegistered();
-            }
+            mTor.start();
             update();
         });
 
         mMerlin.registerDisconnectable(() -> {
+            mTor.stop();
             update();
         });
 
         mServer = Server.getInstance(this);
         mServer.setServiceRegisterListener(mSrl);
         mTor = Tor.getInstance(this);
+        mTor.start();
         mClient = Client.getInstance(this);
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {

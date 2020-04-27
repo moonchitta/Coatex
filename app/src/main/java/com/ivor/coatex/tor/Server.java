@@ -122,7 +122,6 @@ public class Server {
                 }
             }
         }.start();
-        checkServiceRegistered();
     }
 
     public void setServiceRegistered(boolean value) {

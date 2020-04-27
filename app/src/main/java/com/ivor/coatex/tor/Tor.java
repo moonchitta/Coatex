@@ -49,6 +49,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -61,24 +62,26 @@ public class Tor {
     private static String tordirname = "tordata";
     private static String torservdir = "torserv";
     private static String torCfg = "torcfg";
-    public static int HIDDEN_SERVICE_VERSION = 2;
+    private static int HIDDEN_SERVICE_VERSION = 2;
     private static Tor instance = null;
-    private Context context;
+    private Context mContext;
     private static int mSocksPort = 9151;
     private static int mHttpPort = 8191;
-    private String domain = "";
+    private String mDomain = "";
     private ArrayList<Listener> mListeners;
     private ArrayList<LogListener> mLogListeners;
     private String status = "";
-    private boolean ready = false;
+    private boolean mReady = false;
 
     private File mTorDir;
 
     private Process mProcessTor;
 
-    public Tor(Context c) {
+    private AtomicBoolean mRunning = new AtomicBoolean(false);
 
-        this.context = c;
+    private Tor(Context c) {
+
+        this.mContext = c;
 
         mListeners = new ArrayList<>();
         mLogListeners = new ArrayList<>();
@@ -88,28 +91,32 @@ public class Tor {
             mTorDir.mkdir();
         }
 
-        final Server server = Server.getInstance(context);
+        mDomain = Util.filestr(new File(getServiceDir(), "hostname")).trim();
+        log(mDomain);
+    }
 
-        domain = Util.filestr(new File(getServiceDir(), "hostname")).trim();
-        log(domain);
+    /**
+     * start the tor thread
+     */
+    public void start() {
+        if (mRunning.get()) return; // if already running, don't do anything
 
+        Server.getInstance(mContext).setServiceRegistered(false);
         new Thread() {
             @Override
             public void run() {
                 try {
-                    //test();
-
                     log("kill");
                     Native.killTor();
 
                     log("install");
-                    extractFile(context, R.raw.tor, torname);
+                    extractFile(mContext, R.raw.tor, torname);
 
                     //log("delete on exit");
                     //context.getFileStreamPath(torname).deleteOnExit();
 
                     log("set executable");
-                    context.getFileStreamPath(torname).setExecutable(true);
+                    mContext.getFileStreamPath(torname).setExecutable(true);
 
                     log("make dir");
                     File tordir = new File(mTorDir, tordirname);
@@ -120,7 +127,7 @@ public class Tor {
                     torsrv.mkdirs();
 
                     log("configure");
-                    PrintWriter torcfg = new PrintWriter(context.openFileOutput(torCfg, Context.MODE_PRIVATE));
+                    PrintWriter torcfg = new PrintWriter(mContext.openFileOutput(torCfg, Context.MODE_PRIVATE));
                     //torcfg.println("Log debug stdout");
 //                    torcfg.println("Log notice stdout");
                     torcfg.println("DataDirectory " + tordir.getAbsolutePath());
@@ -128,17 +135,17 @@ public class Tor {
                     torcfg.println("HTTPTunnelPort " + mHttpPort);
                     torcfg.println("HiddenServiceDir " + torsrv.getAbsolutePath());
                     torcfg.println("HiddenServiceVersion " + HIDDEN_SERVICE_VERSION);
-                    torcfg.println("HiddenServicePort " + getHiddenServicePort() + " " + server.getSocketName());
+                    torcfg.println("HiddenServicePort " + getHiddenServicePort() + " " + Server.getInstance(mContext).getSocketName());
                     torcfg.println("HiddenServicePort " + getFileServerPort() + " 127.0.0.1:" + getFileServerPort());
                     torcfg.println();
                     torcfg.close();
-                    log(Util.filestr(new File(context.getFilesDir(), torCfg)));
+                    log(Util.filestr(new File(mContext.getFilesDir(), torCfg)));
 
                     log("start: " + new File(torname).getAbsolutePath());
 
                     String[] command = new String[]{
-                            context.getFileStreamPath(torname).getAbsolutePath(),
-                            "-f", context.getFileStreamPath(torCfg).getAbsolutePath()
+                            mContext.getFileStreamPath(torname).getAbsolutePath(),
+                            "-f", mContext.getFileStreamPath(torCfg).getAbsolutePath()
                     };
 
                     StringBuilder sb = new StringBuilder();
@@ -149,6 +156,8 @@ public class Tor {
 
                     log("Command: " + sb.toString());
 
+                    mRunning.set(true);
+
                     mProcessTor = Runtime.getRuntime().exec(command);
                     BufferedReader torReader = new BufferedReader(new InputStreamReader(mProcessTor.getInputStream()));
                     while (true) {
@@ -157,23 +166,23 @@ public class Tor {
                         log(line);
                         status = line;
 
-                        boolean ready2 = ready;
+                        boolean ready2 = mReady;
 
                         if (line.contains("100%")) {
                             ls(mTorDir);
-                            domain = Util.filestr(new File(torsrv, "hostname")).trim();
-                            log(domain);
+                            mDomain = Util.filestr(new File(torsrv, "hostname")).trim();
+                            log(mDomain);
                             try {
                                 for (Listener l : mListeners) {
                                     if (l != null) l.onChange();
                                 }
                             } catch (Exception e) {
                             }
-                            //ready = true;
-                            //test();
                             ready2 = true;
+
+                            Server.getInstance(mContext).checkServiceRegistered();
                         }
-                        ready = ready2;
+                        mReady = ready2;
                         try {
                             for (LogListener ll : mLogListeners) {
                                 if (ll != null) {
@@ -188,6 +197,7 @@ public class Tor {
                     ex.printStackTrace();
                     //throw new Error(ex);
                 }
+                mRunning.set(false);
             }
         }.start();
     }
@@ -199,8 +209,8 @@ public class Tor {
         return instance;
     }
 
-    static String computeID(RSAPublicKeySpec pubkey) {
-        RSAPublicKeyStructure myKey = new RSAPublicKeyStructure(pubkey.getModulus(), pubkey.getPublicExponent());
+    static String computeID(RSAPublicKeySpec pubKey) {
+        RSAPublicKeyStructure myKey = new RSAPublicKeyStructure(pubKey.getModulus(), pubKey.getPublicExponent());
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         ASN1OutputStream as = new ASN1OutputStream(bs);
         try {
@@ -244,11 +254,11 @@ public class Tor {
     }
 
     public String getOnion() {
-        return domain.trim();
+        return mDomain.trim();
     }
 
     public String getID() {
-        return domain.replace(".onion", "").trim();
+        return mDomain.replace(".onion", "").trim();
     }
 
     public void addListener(Listener l) {
@@ -299,21 +309,16 @@ public class Tor {
     }
 
     public String readPrivateKeyFile() {
-//        return Utils.filestr(new File(getServiceDir(), "private_key"));
         return Util.filestr(new File(getServiceDir(), HIDDEN_SERVICE_VERSION == 3 ? "hs_ed25519_secret_key" : "private_key"));
     }
 
     public RSAPrivateKey getPrivateKey() {
         String priv = readPrivateKeyFile();
-//        log(priv);
         priv = priv.replace("-----BEGIN RSA PRIVATE KEY-----\n", "");
         priv = priv.replace("-----END RSA PRIVATE KEY-----", "");
         priv = priv.replaceAll("\\s", "");
-//        log(priv);
         byte[] data = Base64.decode(priv, Base64.DEFAULT);
-//        log("" + data.length);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(data);
-//        log(keySpec.toString());
         try {
             return (RSAPrivateKey) getKeyFactory().generatePrivate(keySpec);
         } catch (InvalidKeySpecException ex) {
@@ -363,6 +368,10 @@ public class Tor {
         } catch (Exception ex) {
             throw new Error(ex);
         }
+    }
+
+    public void stop() {
+        if (mProcessTor != null) mProcessTor.destroy();
     }
 
     public String encryptByPublicKey(String data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchProviderException {
@@ -480,7 +489,7 @@ public class Tor {
     }
 
     public boolean isReady() {
-        return ready;
+        return mReady;
     }
 
     public void removeLogListener(LogListener ll) {

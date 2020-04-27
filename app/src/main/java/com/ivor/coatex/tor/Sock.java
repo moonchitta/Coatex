@@ -40,13 +40,8 @@ public class Sock {
         sock = new Socket();
 
         try {
-
-            Tor tor = Tor.getInstance(context);
-
             try {
-
                 sock.connect(new InetSocketAddress("127.0.0.1", Tor.getSocksPort()), timeout);
-
             } catch (SocketTimeoutException ex3) {
                 log("timeout");
                 try {

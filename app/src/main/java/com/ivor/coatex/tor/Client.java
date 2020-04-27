@@ -354,6 +354,7 @@ public class Client {
 
     public boolean testIfServerIsUp() {
         Sock sock = connect(tor.getID());
+        log("Socket opened: " + !sock.isClosed());
         boolean ret = !sock.isClosed();
         sock.close();
         return ret;
