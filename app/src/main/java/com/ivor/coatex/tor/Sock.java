@@ -10,7 +10,6 @@
 
 package com.ivor.coatex.tor;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.ivor.coatex.BuildConfig;
@@ -18,141 +17,37 @@ import com.ivor.coatex.BuildConfig;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class Sock {
 
-    static final int timeout = 60000;
-    Socket sock;
-    BufferedReader reader;
-    BufferedWriter writer;
+    static final int TIMEOUT = 60000;
+    Socket mSock;
+    BufferedReader mReader;
+    BufferedWriter mWriter;
 
-    public Sock(Context context, String host, int p) {
-
-        log(host);
-
-        sock = new Socket();
-
+    public Sock(String host, int port) {
+        InetSocketAddress proxyAddr = new InetSocketAddress("127.0.0.1", Tor.getSocksPort());
+        Proxy proxyTor = new Proxy(Proxy.Type.SOCKS, proxyAddr);
+        mSock = new Socket(proxyTor);
         try {
+            mSock.connect(new InetSocketAddress(host, port), TIMEOUT);
+            mReader = new BufferedReader(new InputStreamReader(mSock.getInputStream()));
+            mWriter = new BufferedWriter(new OutputStreamWriter(mSock.getOutputStream()));
+        } catch (IOException e) {
+            log("IO Exception");
+            e.printStackTrace();
             try {
-                sock.connect(new InetSocketAddress("127.0.0.1", Tor.getSocksPort()), timeout);
-            } catch (SocketTimeoutException ex3) {
-                log("timeout");
-                try {
-                    sock.close();
-                } catch (IOException ex2) {
-                }
+                mSock.close();
             } catch (IOException ex) {
-                log("failed to open socket");
-                try {
-                    sock.close();
-                } catch (IOException ex2) {
-                }
-            } catch (Exception ex) {
-                log("sock connect err");
-                try {
-                    sock.close();
-                } catch (IOException ex2) {
-                }
-            }
-
-            sock.setSoTimeout(timeout);
-
-            // connect to proxy
-            {
-                //    ByteArrayOutputStream os = new ByteArrayOutputStream();
-
-                OutputStream os = sock.getOutputStream();
-
-                os.write(4); // socks 4a
-                os.write(1); // stream
-
-                //Log.i(TAG, "proto " + u.getProtocol());
-                //if (p < 0 && u.getProtocol().equals("http")) p = 80;
-                //if (p < 0 && u.getProtocol().equals("https")) p = 443;
-                //Log.i(TAG, "port " + p);
-                os.write((p >> 8) & 0xff);
-                os.write((p >> 0) & 0xff);
-
-                os.write(0);
-                os.write(0);
-                os.write(0);
-                os.write(1);
-
-                os.write(0);
-
-                os.write(host.getBytes());
-                os.write(0);
-
-                os.flush();
-
-                //    sock.
-            }
-
-
-            // get proxy response
-
-            {
-                InputStream is = sock.getInputStream();
-
-                byte[] h = new byte[8];
-                is.read(h);
-
-                if (h[0] != 0) {
-                    log("unknown error");
-                    try {
-                        sock.close();
-                    } catch (IOException ex2) {
-                    }
-                    return;
-                }
-
-                if (h[1] != 0x5a) {
-
-                    if (h[1] == 0x5b) {
-                        log("request rejected or failed");
-                        try {
-                            sock.close();
-                        } catch (IOException ex2) {
-                        }
-                        return;
-                    }
-
-                    log("unknown error");
-                    try {
-                        sock.close();
-                    } catch (IOException ex2) {
-                    }
-                    return;
-                }
-
-            }
-
-
-            reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
-
-        } catch (SocketTimeoutException ex3) {
-            log("timeout");
-            try {
-                sock.close();
-            } catch (IOException ex2) {
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            log("failed to connect to tor");
-            try {
-                sock.close();
-            } catch (IOException ex2) {
+                ex.printStackTrace();
             }
         }
-
     }
 
     private void log(String s) {
@@ -168,13 +63,13 @@ public class Sock {
             s += " " + ss[i];
 
         log(" >> " + s);
-        if (writer != null) {
+        if (mWriter != null) {
             try {
-                writer.write(s + "\r\n");
+                mWriter.write(s + "\r\n");
             } catch (SocketTimeoutException ex) {
                 log("timeout");
                 try {
-                    sock.close();
+                    mSock.close();
                 } catch (IOException ex2) {
                 }
             } catch (Exception ex) {
@@ -184,13 +79,13 @@ public class Sock {
 
     public String readLine() {
         String s = null;
-        if (reader != null) {
+        if (mReader != null) {
             try {
-                s = reader.readLine();
+                s = mReader.readLine();
             } catch (SocketTimeoutException ex) {
                 log("timeout");
                 try {
-                    sock.close();
+                    mSock.close();
                 } catch (IOException ex2) {
                 }
             } catch (Exception ex) {
@@ -241,13 +136,13 @@ public class Sock {
     }
 
     public void flush() {
-        if (writer != null) {
+        if (mWriter != null) {
             try {
-                writer.flush();
+                mWriter.flush();
             } catch (SocketTimeoutException ex) {
                 log("timeout");
                 try {
-                    sock.close();
+                    mSock.close();
                 } catch (IOException ex2) {
                 }
             } catch (Exception ex) {
@@ -259,22 +154,22 @@ public class Sock {
 
         flush();
 
-        if (sock != null) {
+        if (mSock != null) {
             try {
-                sock.close();
+                mSock.close();
             } catch (Exception ex) {
             }
         }
 
-        reader = null;
-        writer = null;
-        sock = null;
+        mReader = null;
+        mWriter = null;
+        mSock = null;
 
     }
 
     public boolean isClosed() {
         //try {
-        return sock.isClosed();
+        return mSock.isClosed();
         /*} catch(IOException ex) {
             return true;
         }*/

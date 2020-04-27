@@ -76,7 +76,7 @@ public class Client {
 
     private Sock connect(String address) {
         log("connect to " + address);
-        Sock sock = new Sock(mContext, address + ".onion", Tor.getHiddenServicePort());
+        Sock sock = new Sock(address + ".onion", Tor.getHiddenServicePort());
         return sock;
     }
 
