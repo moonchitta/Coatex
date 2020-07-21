@@ -102,6 +102,7 @@ public class Tor {
         if (mRunning.get()) return; // if already running, don't do anything
 
         Server.getInstance(mContext).setServiceRegistered(false);
+        mReady = false;
         new Thread() {
             @Override
             public void run() {

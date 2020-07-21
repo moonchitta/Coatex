@@ -34,10 +34,10 @@ public class DeleteContact extends AsyncTask<Long, Void, Boolean> {
     }
 
     @Override
-    protected Boolean doInBackground(Long... longs) {
+    protected Boolean doInBackground(Long... ids) {
         Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
-        Contact contact = realm.where(Contact.class).equalTo("_id", longs[0]).findFirst();
+        Contact contact = realm.where(Contact.class).equalTo("_id", ids[0]).findFirst();
         realm.where(Message.class)
                 .equalTo("sender", contact.getAddress())
                 .or()

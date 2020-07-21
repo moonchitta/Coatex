@@ -48,9 +48,6 @@ import java.util.Properties;
 
 import io.realm.Realm;
 
-//import com.ivor.coatex.transformation.CircleTransform;
-//import com.squareup.picasso.Picasso;
-
 public class ImportIdActivity extends AppCompatActivity {
 
     private static final int PICK_FILE_REQUEST = 100;
